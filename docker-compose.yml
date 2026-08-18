@@ -1,0 +1,56 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: ccms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: complaint
+      MYSQL_USER: complaint_user
+      MYSQL_PASSWORD: Complaint@123
+      MYSQL_ROOT_PASSWORD: Root@123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRoot@123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./ccms-backend
+    container_name: ccms-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 8082
+      MYSQL_URL: jdbc:mysql://mysql:3306/complaint?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      MYSQL_USER: complaint_user
+      MYSQL_PASSWORD: Complaint@123
+      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      FRONTEND_URL: http://localhost:3000
+      JWT_SECRET: change_this_to_a_long_base64_safe_secret_at_least_32_chars
+      JPA_DDL_AUTO: update
+      JPA_SHOW_SQL: "false"
+    ports:
+      - "8082:8082"
+
+  frontend:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: http://localhost:8082/api
+        VITE_FRONTEND_URL: http://localhost:3000
+    container_name: ccms-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  mysql-data:
