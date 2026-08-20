@@ -1,0 +1,56 @@
+name: Scheduled daily commits
+
+on:
+  schedule:
+    - cron: '0 12 * * *' # daily at 12:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  daily_commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure scheduled branch exists locally
+        run: |
+          if git ls-remote --heads origin scheduled-commits; then
+            git fetch origin/scheduled-commits
+            git checkout scheduled-commits
+          else
+            git checkout -b scheduled-commits
+          fi
+
+      - name: Read counter
+        id: counter
+        run: |
+          if [ -f .github/commit-counter ]; then
+            echo "COUNTER=$(cat .github/commit-counter)" >> $GITHUB_OUTPUT
+          else
+            echo "COUNTER=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if all commits done
+        if: ${{ fromJson(steps.counter.outputs.COUNTER) >= 12 }}
+        run: echo "All 12 commits already made"
+
+      - name: Create next daily file and increment counter
+        run: |
+          COUNTER=$(cat .github/commit-counter 2>/dev/null || echo 0)
+          NEXT=$((COUNTER+1))
+          mkdir -p docs
+          echo "Automated daily commit Day $NEXT - $(date -u +"%Y-%m-%d")" > docs/daily-$NEXT.md
+          echo "$NEXT" > .github/commit-counter
+          git add docs/daily-$NEXT.md .github/commit-counter
+          git commit -m "Day $NEXT: Automated daily update"
+          git push origin scheduled-commits
