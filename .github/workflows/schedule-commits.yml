@@ -44,13 +44,28 @@ jobs:
         if: ${{ fromJson(steps.counter.outputs.COUNTER) >= 12 }}
         run: echo "All 12 commits already made"
 
-      - name: Create next daily file and increment counter
+      - name: Create next daily file from messages and increment counter
         run: |
+          set -e
+          if [ ! -f .github/daily-commit-messages.txt ]; then
+            echo "Missing .github/daily-commit-messages.txt" >&2
+            exit 1
+          fi
           COUNTER=$(cat .github/commit-counter 2>/dev/null || echo 0)
           NEXT=$((COUNTER+1))
+          TOTAL=$(wc -l < .github/daily-commit-messages.txt | tr -d ' ')
+          if [ "$NEXT" -gt "$TOTAL" ]; then
+            echo "All $TOTAL commits already scheduled"
+            exit 0
+          fi
+          LINE=$(sed -n "${NEXT}p" .github/daily-commit-messages.txt)
+          TITLE=$(printf '%s' "$LINE" | cut -d '|' -f1)
+          BODY=$(printf '%s' "$LINE" | cut -d '|' -f2-)
           mkdir -p docs
-          echo "Automated daily commit Day $NEXT - $(date -u +"%Y-%m-%d")" > docs/daily-$NEXT.md
+          echo "# $TITLE" > docs/daily-$NEXT.md
+          echo "" >> docs/daily-$NEXT.md
+          echo "$BODY" >> docs/daily-$NEXT.md
           echo "$NEXT" > .github/commit-counter
           git add docs/daily-$NEXT.md .github/commit-counter
-          git commit -m "Day $NEXT: Automated daily update"
+          git commit -m "Day $NEXT: $TITLE" || echo "No changes to commit"
           git push origin scheduled-commits

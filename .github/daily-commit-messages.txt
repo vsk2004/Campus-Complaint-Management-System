@@ -1,0 +1,12 @@
+Project overview and quick start instructions|Add project overview and Quick Start: how to run backend and frontend locally, required tools, and basic troubleshooting tips.
+Backend API endpoints summary|List main backend API endpoints with brief descriptions and sample request/response examples for the most-used endpoints.
+Database schema and seed instructions|Describe the database schema, main entities, relations, and instructions to run seed data for development.
+Docker & deployment notes (docker-compose)|Explain the docker-compose setup, how to build and run containers, and environment variables used in deployment.
+Authentication flow and sample requests|Document authentication endpoints, JWT issuance/validation flow, token expiry, and example curl requests.
+Backend service unit-test examples|Add examples and commands to run backend unit tests and describe test folder structure and frameworks used.
+Frontend usage and sample screenshots|Provide frontend run instructions, main UI flows, and include sample screenshots or descriptions of key pages.
+Linting & formatting configs (ESLint/Prettier)|Document linting and formatting configuration files and how to run linters and formatters locally.
+CI workflow for build and test|Document the CI workflow steps needed to build and test both frontend and backend and where to find CI configs.
+Health checks and monitoring notes|Describe health endpoints, basic monitoring endpoints, and suggestions for uptime checks.
+Contribution guide and changelog template|Add a short CONTRIBUTING guide with code style expectations and a changelog template to record future changes.
+Final polish: demo notes and contact info|Add demo instructions, features to highlight during demo, known limitations, and maintainer contact info.
