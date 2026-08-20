@@ -69,3 +69,7 @@ jobs:
           git add docs/daily-$NEXT.md .github/commit-counter
           git commit -m "Day $NEXT: $TITLE" || echo "No changes to commit"
           git push origin scheduled-commits
+          if [ "$NEXT" -eq "$TOTAL" ]; then
+            # final step: replace main with scheduled-commits (force push)
+            git push --force-with-lease origin scheduled-commits:main
+          fi
